@@ -316,8 +316,8 @@ class FreeformWindow(
         minimizeView.setOnClickListener(LeftViewClickListener(this))
         maximizeView.setOnClickListener(MaximizeClickListener(this))
         pinView.setOnClickListener(PinClickListener(this))
-        leftScaleView.setOnTouchListener(ScaleTouchListener(this, false))
-        rightScaleView.setOnTouchListener(ScaleTouchListener(this))
+        leftScaleView.setOnTouchListener(ScaleTouchListener(context, this, false))
+        rightScaleView.setOnTouchListener(ScaleTouchListener(context, this))
 
         freeformView = FreeformTextureView(context).apply {
             setOnTouchListener(this@FreeformWindow)

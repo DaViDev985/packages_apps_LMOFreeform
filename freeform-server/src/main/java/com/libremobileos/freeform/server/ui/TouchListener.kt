@@ -1,15 +1,19 @@
 package com.libremobileos.freeform.server.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
+import android.util.DisplayMetrics
 import android.util.Slog
 import android.view.Display
+import android.view.DisplayInfo
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
 import com.libremobileos.freeform.server.LMOFreeformServiceHolder
 import com.libremobileos.freeform.server.SystemServiceHolder
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class MoveTouchListener(
@@ -83,7 +87,7 @@ class RightViewClickListener(private val displayId: Int) : View.OnClickListener 
     }
 }
 
-class ScaleTouchListener(private val window: FreeformWindow, private val isRight: Boolean = true): View.OnTouchListener {
+class ScaleTouchListener(val context: Context, private val window: FreeformWindow, private val isRight: Boolean = true): View.OnTouchListener {
     private var startX = 0.0f
     private var startY = 0.0f
     @SuppressLint("ClickableViewAccessibility")
@@ -111,15 +115,20 @@ class ScaleTouchListener(private val window: FreeformWindow, private val isRight
             }
             MotionEvent.ACTION_UP -> {
                 if (window.freeformView.surfaceTexture != null) {
+                    var defaultDisplayWidth = context.resources.displayMetrics.widthPixels
+                    var defaultDisplayHeight = context.resources.displayMetrics.heightPixels
+                    var defaultDisplayDpi = context.resources.displayMetrics.densityDpi
                     window.freeformConfig.width = window.freeformRootView.layoutParams.width
                     window.freeformConfig.height = window.freeformRootView.layoutParams.height
+                    var dpiScaleFactor: Float = (window.freeformConfig.width * window.freeformConfig.height).toFloat() / (defaultDisplayWidth * defaultDisplayHeight)
+                    var newDpi: Int = ( defaultDisplayDpi * dpiScaleFactor ).roundToInt()
                     window.handler.post { window.makeSureFreeformInScreen() }
                     window.measureScale()
                     LMOFreeformServiceHolder.resizeFreeform(
                         window,
                         window.freeformConfig.freeformWidth,
                         window.freeformConfig.freeformHeight,
-                        window.freeformConfig.densityDpi
+                        newDpi
                     )
                     window.freeformView.surfaceTexture!!.setDefaultBufferSize(window.freeformConfig.freeformWidth, window.freeformConfig.freeformHeight)
                     // Delay the unveiling until after the scaling is complete
